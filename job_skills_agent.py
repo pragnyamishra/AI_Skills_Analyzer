@@ -460,48 +460,60 @@ Return ONLY valid JSON, no markdown or extra text."""
         return None
 
 
-def display_skills_report(skills_data, config):
-    """Display the skills analysis"""
-    print("=" * 70)
-    print(f"{config['job_title'].upper()} SKILLS MARKET REPORT")
-    print("=" * 70)
+def display_skills_report(skills_data, config, num_jobs=None):
+    """Display the skills analysis in a structured report format"""
+    job_count_str = f"{num_jobs} recent job postings" if num_jobs else "recent job postings"
+    
+    print("\n" + "─" * 70)
+    print("📊 SKILLS MARKET REPORT – " + config["job_title"])
+    print("─" * 70)
+    print(f"Analysis based on {job_count_str}.")
     print(f"\n{skills_data.get('summary', 'Market analysis complete.')}\n")
     
-    # Show skill gap summary if available
-    if 'skill_gap_summary' in skills_data:
+    if "skill_gap_summary" in skills_data:
         print("YOUR SKILL GAP ANALYSIS:")
-        print(skills_data['skill_gap_summary'])
+        print(skills_data["skill_gap_summary"])
         print()
     
-    print("\nTOP 10 IN-DEMAND SKILLS:\n")
-    print(f"{'#':<4} {'Skill':<25} {'Category':<20} {'Jobs':<8} {'Priority':<10} {'Status'}")
-    print("-" * 95)
+    print("Top In-Demand Skills:\n")
+    # Table with borders: # | Skill | Category | Priority | Status
+    col_w = {"#": 3, "Skill": 22, "Category": 18, "Priority": 8, "Status": 10}
+    sep = "+" + "-" * (col_w["#"] + 2) + "+" + "-" * (col_w["Skill"] + 2) + "+" + "-" * (col_w["Category"] + 2) + "+" + "-" * (col_w["Priority"] + 2) + "+" + "-" * (col_w["Status"] + 2) + "+"
     
-    for i, skill in enumerate(skills_data.get('top_skills', [])[:10], 1):
-        importance = skill.get('importance', 'Medium')
-        job_count = skill.get('job_count', 0)
-        user_has = skill.get('user_has', None)
-        # Normalize: API may return true/false or "true"/"false"
+    w = [col_w["#"], col_w["Skill"], col_w["Category"], col_w["Priority"], col_w["Status"]]
+    def row(*cells):
+        return "| " + " | ".join(str(c).ljust(w[i])[:w[i]] for i, c in enumerate(cells)) + " |"
+    
+    print(sep)
+    print(row("#", "Skill", "Category", "Priority", "Status"))
+    print(sep)
+    
+    for i, skill in enumerate(skills_data.get("top_skills", [])[:10], 1):
+        importance = (skill.get("importance") or "Medium").upper()[:col_w["Priority"]]
+        user_has = skill.get("user_has", None)
         if user_has is not None:
             if isinstance(user_has, str):
                 user_has = user_has.strip().lower() in ("true", "yes", "1")
-            status = "Have" if user_has else "Learn"
+            status = "✓ Have" if user_has else "✗ Learn"
         else:
             status = ""
-        
-        print(f"{i:<4} {skill['skill']:<25} {skill['category']:<20} {job_count}/3      {importance:<10} {status}")
-        print(f"     -> {skill.get('description', 'Important skill')}")
-        print()
+        skill_name = (skill.get("skill") or "")[:col_w["Skill"]]
+        category = (skill.get("category") or "")[:col_w["Category"]]
+        print(row(str(i), skill_name, category, importance, status))
+    
+    print(sep)
+    # Descriptions below table
+    for i, skill in enumerate(skills_data.get("top_skills", [])[:10], 1):
+        desc = skill.get("description", "Important skill")
+        if desc:
+            print(f"  {i}. {skill.get('skill', '')}: {desc}")
+    print()
 
 
 def generate_daily_challenge(skills_data, config):
     """Generate a daily challenge using Groq AI"""
     if not GROQ_API_KEY:
         return None
-    
-    print("\n" + "=" * 70)
-    print("YOUR DAILY CHALLENGE")
-    print("=" * 70)
     
     # Focus on skills the user needs to learn
     resume_text = load_resume()
@@ -516,6 +528,8 @@ def generate_daily_challenge(skills_data, config):
         skills_to_focus = skills_data.get('top_skills', [])[:3]
     
     skills_list = ", ".join([s['skill'] for s in skills_to_focus[:3]])
+    progress = load_progress()
+    challenge_num = progress['total_challenges'] + 1
     
     prompt = f"""You're a career mentor for {config['job_title']} professionals. Create ONE practical challenge.
 
@@ -527,15 +541,19 @@ Requirements:
 - Portfolio-worthy for {config['job_title']} role
 - Uses accessible tools
 
-Provide:
-1. Challenge Title
-2. What You'll Build/Create
-3. Skills Practiced
-4. Step-by-Step Instructions (beginner-friendly)
-5. Success Criteria
-6. How This Helps Your {config['job_title']} Job Search
+Respond in this exact format (use these section headers):
 
-Keep it simple and actionable."""
+Title: [One short challenge title]
+
+What to do:
+1. [First step]
+2. [Second step]
+3. [Third step]
+4. [Fourth step - add more if needed]
+
+Skills practiced: [comma-separated list of skills]
+
+Keep it simple and actionable. No extra intro or outro."""
     
     try:
         url = "https://api.groq.com/openai/v1/chat/completions"
@@ -550,7 +568,7 @@ Keep it simple and actionable."""
             "messages": [
                 {
                     "role": "system",
-                    "content": f"You are a practical career mentor for {config['job_title']} who creates beginner-friendly challenges."
+                    "content": f"You are a practical career mentor for {config['job_title']} who creates beginner-friendly challenges. Always use the exact section headers: Title:, What to do:, Skills practiced:"
                 },
                 {
                     "role": "user",
@@ -565,9 +583,19 @@ Keep it simple and actionable."""
         
         if response.status_code == 200:
             result = response.json()
-            challenge = result['choices'][0]['message']['content']
+            challenge = result['choices'][0]['message']['content'].strip()
             
-            print("\n" + challenge)
+            # Structured Daily Challenge output
+            print("\n" + "─" * 70)
+            print("Daily Challenge")
+            print("─" * 70)
+            print(f"\n🎯 TODAY'S CHALLENGE (#{challenge_num})\n")
+            print(challenge)
+            print("\n" + "─" * 70)
+            print(f"Skills practiced: {skills_list}")
+            completed = progress.get("completed_challenges", 0)
+            print(f"Progress: {completed} challenges completed")
+            print("─" * 70)
             
             # Save challenge
             today = datetime.now().strftime("%Y-%m-%d")
@@ -578,7 +606,6 @@ Keep it simple and actionable."""
                 "job_title": config['job_title']
             }
             
-            progress = load_progress()
             progress['challenges'].append(challenge_data)
             progress['total_challenges'] += 1
             save_progress(progress)
@@ -668,7 +695,7 @@ def main():
         return
     
     # Step 3: Display report
-    display_skills_report(skills_data, config)
+    display_skills_report(skills_data, config, num_jobs=len(jobs))
     
     # Step 4: Generate challenge
     generate_daily_challenge(skills_data, config)
