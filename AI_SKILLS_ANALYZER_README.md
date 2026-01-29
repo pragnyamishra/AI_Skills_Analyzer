@@ -251,9 +251,8 @@ Feel free to open an issue or submit a PR!
 ## 📬 Contact
 
 **Pragnya Lipsa Mishra**
-- 📧 Email: pragnyal.mishra@gmail.com
 - 💼 LinkedIn: [linkedin.com/in/pragnya-lipsa-mishra](https://www.linkedin.com/in/pragnya-lipsa-mishra/)
-- 🐙 GitHub: [github.com/YOUR_USERNAME](https://github.com/YOUR_USERNAME)
+- 🐙 GitHub: [github.com/pragnyamishra](https://github.com/pragnyamishra)
 
 ---
 
