@@ -1,0 +1,4 @@
+requests>=2.31.0
+# Resume support: .txt (built-in), .docx, .pdf
+python-docx>=1.0.0
+pypdf>=4.0.0
