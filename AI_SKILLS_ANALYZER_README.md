@@ -3,7 +3,6 @@
 > **An intelligent CLI tool that analyzes real job market data to identify in-demand skills and generate personalized learning challenges**
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Groq](https://img.shields.io/badge/Powered%20by-Groq%20AI-orange.svg)](https://groq.com/)
 
 ---
@@ -238,12 +237,6 @@ Contributions are welcome! Here are some ideas:
 - [ ] Multi-language support
 
 Feel free to open an issue or submit a PR!
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
