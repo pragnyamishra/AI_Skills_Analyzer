@@ -86,7 +86,7 @@ Top 10 In-Demand Skills:
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/ai-skills-analyzer.git
+git clone https://github.com/pragnyamishra/AI_Skills_Analyzer.git
 cd ai-skills-analyzer
 
 # Install dependencies
@@ -257,5 +257,3 @@ Feel free to open an issue or submit a PR!
 ---
 
 ## 🌟 Star this repo if you find it helpful!
-
-*Built with ❤️ to help people navigate their career journeys with data-driven insights*
